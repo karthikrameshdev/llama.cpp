@@ -1,0 +1,6 @@
+{
+  "name": "llama-runtime-visualizer", "version": "0.1.0", "private": true, "type": "module",
+  "scripts": {"build": "vite build", "test": "node --test src/*.test.js"},
+  "dependencies": {"three": "^0.180.0"},
+  "devDependencies": {"vite": "^7.1.0"}
+}

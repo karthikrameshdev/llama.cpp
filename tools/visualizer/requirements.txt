@@ -1,0 +1,8 @@
+fastapi>=0.115,<1
+uvicorn>=0.34,<1
+grpcio>=1.70,<2
+grpcio-tools>=1.70,<2
+numpy>=2,<3
+pyyaml>=6,<7
+tqdm>=4,<5
+requests>=2.25,<3

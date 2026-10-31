@@ -1,0 +1,29 @@
+[
+  {
+    "repo": "ggml-org/Qwen3.5-0.8B-GGUF",
+    "revision": "807dfd9a6fadbf703207aac3bfb0b2b3040d077c",
+    "file": "Qwen3.5-0.8B-Q4_0.gguf",
+    "local": "qwen3.5-0.8b-q4_0.gguf",
+    "sha256": "57d1997790d1744fba5b40a7317df71ea5e2acee28c47e78f0cce39c0703f8cf",
+    "bytes": 563036064,
+    "url": "https://huggingface.co/ggml-org/Qwen3.5-0.8B-GGUF/resolve/807dfd9a6fadbf703207aac3bfb0b2b3040d077c/Qwen3.5-0.8B-Q4_0.gguf"
+  },
+  {
+    "repo": "bartowski/granite-3.1-1b-a400m-instruct-GGUF",
+    "revision": "940d2e1f9f65330615c7c8e980e6c5ac73d3360c",
+    "file": "granite-3.1-1b-a400m-instruct-Q4_K_M.gguf",
+    "local": "granite-3.1-1b-moe-q4_k_m.gguf",
+    "sha256": "3a2ec1c2a78cb29d901e29bbf5162dcd03381e13803d2cbdcff838d4d08142eb",
+    "bytes": 821847360,
+    "url": "https://huggingface.co/bartowski/granite-3.1-1b-a400m-instruct-GGUF/resolve/940d2e1f9f65330615c7c8e980e6c5ac73d3360c/granite-3.1-1b-a400m-instruct-Q4_K_M.gguf"
+  },
+  {
+    "repo": "mradermacher/Qwen3.5-0.8B-GGUF",
+    "revision": "78fc4c891ff7dee2e8286c3f4cdc8a26f7544a07",
+    "file": "Qwen3.5-0.8B.mmproj-Q8_0.gguf",
+    "local": "qwen3.5-0.8b-mmproj-q8.gguf",
+    "sha256": "5a6b15da0f483b9e320a5b86b787ad1831953dfaa706e2c5d91de830ea70d784",
+    "bytes": 115923680,
+    "url": "https://huggingface.co/mradermacher/Qwen3.5-0.8B-GGUF/resolve/78fc4c891ff7dee2e8286c3f4cdc8a26f7544a07/Qwen3.5-0.8B.mmproj-Q8_0.gguf"
+  }
+]

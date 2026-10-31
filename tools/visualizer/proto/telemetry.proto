@@ -1,0 +1,21 @@
+syntax = "proto3";
+package llama.visualizer.v1;
+
+// A native observation. payload_json is a versioned discriminated event body.
+message Event {
+  uint64 sequence = 1;
+  string run_id = 2;
+  string model_id = 3;
+  string kind = 4;
+  string payload_json = 5;
+}
+message EventBatch { repeated Event events = 1; }
+message Command {
+  string request_id = 1;
+  string kind = 2;
+  string payload_json = 3;
+}
+service Telemetry {
+  // Long-lived engine session; each direction preserves its message order.
+  rpc Connect(stream EventBatch) returns (stream Command);
+}

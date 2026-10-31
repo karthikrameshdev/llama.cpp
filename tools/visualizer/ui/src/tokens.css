@@ -1,0 +1,8 @@
+:root {
+    --bg: #10150e;
+    --text: #e0e8d9;
+    --muted: #85927b;
+    --lime: #c8f36c;
+    --line: #2b3424;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}

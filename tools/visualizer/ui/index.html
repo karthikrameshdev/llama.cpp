@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#10130f" />
+        <title>llama.cpp · Runtime Observatory</title>
+    </head>
+    <body>
+        <header class="topbar">
+            <a class="brand" href="/" aria-label="Runtime Observatory home"
+                ><span class="brand-mark">λ</span
+                ><span>llama.cpp <strong>observatory</strong></span
+                ><span class="version">RUNTIME / 01</span></a
+            >
+            <div class="top-right">
+                <span class="local-tag">LOCAL FIRST</span
+                ><span id="connection" class="connection"
+                    ><i></i>Connecting</span
+                ><button id="restart-engine" class="secondary compact" hidden>
+                    Restart engine</button
+                ><button
+                    id="help"
+                    class="icon-button"
+                    title="About capture accuracy"
+                    aria-label="About capture accuracy"
+                >
+                    ?
+                </button>
+            </div>
+        </header>
+        <div class="workspace">
+            <aside class="sidebar">
+                <div class="section-label">WORKSPACE <span>01</span></div>
+                <h1>Inside the<br /><em>inference.</em></h1>
+                <p class="intro">
+                    A live map of your model,<br />from input to next token.
+                </p>
+                <label class="field-label" for="model-select"
+                    >LOADED MODEL</label
+                ><select id="model-select" aria-label="Select model">
+                    <option value="">Discovering local models…</option></select
+                ><button id="load-model" class="secondary wide">
+                    Load model <span>↗</span>
+                </button>
+                <details class="load-settings">
+                    <summary>Engine settings</summary>
+                    <label
+                        >Context
+                        <input
+                            id="context-size"
+                            type="number"
+                            value="2048"
+                            min="256"
+                            max="32768" /></label
+                    ><label
+                        >GPU layers
+                        <input
+                            id="gpu-layers"
+                            type="number"
+                            value="99"
+                            min="0"
+                            max="999" /></label
+                    ><label
+                        >Projector path
+                        <input id="mmproj" placeholder="Optional mmproj.gguf"
+                    /></label>
+                </details>
+                <div id="model-mini" class="model-mini">
+                    <span class="muted"
+                        >Select a GGUF from your local model library.</span
+                    >
+                </div>
+                <div class="history-heading">
+                    <span class="section-label">PROMPT ARCHIVE</span
+                    ><button
+                        id="refresh-history"
+                        class="icon-button"
+                        title="Refresh saved runs"
+                        aria-label="Refresh saved runs"
+                    >
+                        ↻
+                    </button>
+                </div>
+                <div id="history" class="history">
+                    <p class="empty-small">
+                        Your executions will be saved here.
+                    </p>
+                </div>
+                <div class="sidebar-footer">
+                    <i></i
+                    ><span
+                        >Every run, locally preserved.<br /><small
+                            >SQLite · resumable event stream</small
+                        ></span
+                    >
+                </div>
+            </aside>
+            <main class="main">
+                <section class="graph-section">
+                    <div class="graph-heading">
+                        <div>
+                            <div class="eyebrow">EXECUTION TOPOLOGY</div>
+                            <h2 id="graph-title">
+                                Runtime graph <span id="model-arch"></span>
+                            </h2>
+                        </div>
+                        <div class="view-controls">
+                            <div class="segmented">
+                                <button id="view-layers" class="selected">
+                                    Layers</button
+                                ><button id="view-ops">Operations</button>
+                            </div>
+                            <button
+                                id="toggle-3d"
+                                class="secondary compact"
+                                aria-pressed="false"
+                            >
+                                3D</button
+                            ><button id="fit" class="secondary compact">
+                                Fit view
+                            </button>
+                        </div>
+                    </div>
+                    <div class="graph-toolbar">
+                        <div class="search">
+                            <span>⌕</span
+                            ><input
+                                id="node-search"
+                                placeholder="Find a node · Enter to inspect…"
+                                aria-label="Search graph"
+                            />
+                        </div>
+                        <select
+                            id="category"
+                            aria-label="Filter graph category"
+                        >
+                            <option value="all">All components</option>
+                            <option value="attention">Attention</option>
+                            <option value="routing">MoE routing</option>
+                            <option value="expert">Experts</option>
+                            <option value="recurrence">Recurrent state</option>
+                            <option value="embedding">Embedding</option>
+                            <option value="output">Output</option></select
+                        ><label class="toggle-label"
+                            ><input
+                                id="show-weights"
+                                type="checkbox"
+                                checked
+                            />Weights</label
+                        ><span id="phase-badge" class="phase-badge"
+                            >AWAITING MODEL</span
+                        >
+                    </div>
+                    <div id="model-capacity" class="model-capacity">
+                        Model capacity will preload when a model is selected.
+                    </div>
+                    <div id="activation-label" class="activation-label">
+                        Stable model layout · prompts update highlights only
+                    </div>
+                    <div
+                        id="graph"
+                        class="graph-canvas"
+                        aria-label="Interactive runtime computation graph"
+                    >
+                        <div id="graph-empty" class="graph-empty">
+                            <div class="empty-orbit">λ</div>
+                            <h3>No model in view</h3>
+                            <p>
+                                Load a local GGUF to discover its
+                                architecture.<br />The graph below will come
+                                from actual execution.
+                            </p>
+                        </div>
+                        <div
+                            id="graph-tooltip"
+                            class="graph-tooltip"
+                            hidden
+                        ></div>
+                        <div class="canvas-label">
+                            DRAG TO PAN <span>·</span> SCROLL TO ZOOM
+                            <span>·</span> SELECT TO INSPECT
+                        </div>
+                        <div id="graph-count" class="graph-count">
+                            0 runtime nodes
+                        </div>
+                    </div>
+                    <div class="legend">
+                        <span><i style="--dot: #91bbfa"></i>Embedding</span
+                        ><span><i style="--dot: #58d5b0"></i>Attention</span
+                        ><span><i style="--dot: #d5a3ff"></i>Routing</span
+                        ><span><i style="--dot: #f6bc72"></i>Experts / FFN</span
+                        ><span><i style="--dot: #f28d9c"></i>State</span
+                        ><span><i style="--dot: #c8f36c"></i>Output</span
+                        ><span class="legend-note"
+                            >Color = component · brightness = observed
+                            execution</span
+                        >
+                    </div>
+                    <div class="metrics">
+                        <div>
+                            <span>MODEL CATALOG NODES</span
+                            ><strong id="metric-nodes">—</strong>
+                        </div>
+                        <div>
+                            <span>DEPENDENCIES</span
+                            ><strong id="metric-edges">—</strong>
+                        </div>
+                        <div>
+                            <span>OBSERVED OPS</span
+                            ><strong id="metric-observed">—</strong>
+                        </div>
+                        <div>
+                            <span>STEP WALL TIME</span
+                            ><strong id="metric-time">—</strong>
+                        </div>
+                        <div>
+                            <span>EXPERT SELECTIONS</span
+                            ><strong id="metric-routes">—</strong>
+                        </div>
+                    </div>
+                </section>
+                <section class="execution">
+                    <div class="execution-top">
+                        <div class="tab-strip">
+                            <button id="tab-prompt" class="active">
+                                Prompt & response</button
+                            ><button id="tab-timeline">
+                                Execution timeline</button
+                            ><button id="tab-compare">Compare runs</button>
+                        </div>
+                        <div class="export-controls">
+                            <a id="export-json" class="text-button" hidden
+                                >JSON ↗</a
+                            ><a id="export-jsonl" class="text-button" hidden
+                                >JSONL ↗</a
+                            >
+                        </div>
+                    </div>
+                    <div id="panel-prompt" class="execution-panel">
+                        <form id="prompt-form">
+                            <div class="prompt-entry">
+                                <textarea
+                                    id="prompt"
+                                    rows="2"
+                                    placeholder="Give the model something to think about…"
+                                    aria-label="Prompt"
+                                    required
+                                ></textarea>
+                                <div class="prompt-options">
+                                    <label
+                                        >Tokens
+                                        <input
+                                            id="max-tokens"
+                                            type="number"
+                                            value="16"
+                                            min="1"
+                                            max="1024" /></label
+                                    ><select
+                                        id="capture"
+                                        aria-label="Capture detail"
+                                    >
+                                        <option value="full">
+                                            Every operation + samples
+                                        </option>
+                                        <option value="stats">
+                                            Layer statistics + routing
+                                        </option>
+                                        <option value="routing">
+                                            Routing + graph
+                                        </option></select
+                                    ><label
+                                        class="media-button"
+                                        title="Attach image or audio"
+                                        >＋<input
+                                            id="media"
+                                            type="file"
+                                            accept="image/*,audio/*"
+                                            hidden /></label
+                                    ><button
+                                        id="run"
+                                        type="submit"
+                                        class="primary"
+                                    >
+                                        Run & trace <span>↗</span></button
+                                    ><button
+                                        id="cancel"
+                                        type="button"
+                                        class="danger"
+                                        hidden
+                                    >
+                                        Stop
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="response-box">
+                            <div class="response-heading">
+                                <span>MODEL RESPONSE</span
+                                ><span id="response-meta"
+                                    >Ready when you are</span
+                                >
+                            </div>
+                            <pre id="response" class="response empty-response">
+Execution is the source of truth.</pre
+                            >
+                        </div>
+                    </div>
+                    <div id="panel-timeline" class="execution-panel" hidden>
+                        <div class="timeline-controls">
+                            <button id="replay" class="secondary compact">
+                                ▶ Slow replay</button
+                            ><button id="replay-next" class="secondary compact">
+                                Next operation</button
+                            ><select
+                                id="replay-speed"
+                                aria-label="Replay speed"
+                            >
+                                <option value="500">Slow · 2 ops / sec</option>
+                                <option value="100" selected>
+                                    10 ops / sec
+                                </option>
+                                <option value="25">40 ops / sec</option>
+                                <option value="10">
+                                    100 ops / sec
+                                </option></select
+                            ><button id="go-live" class="secondary compact">
+                                Live / latest</button
+                            ><label for="timeline"
+                                >STEP <strong id="step-label">—</strong></label
+                            ><input
+                                id="timeline"
+                                type="range"
+                                min="0"
+                                max="0"
+                                value="0"
+                                aria-label="Execution step"
+                            />
+                        </div>
+                        <p id="replay-position" class="accuracy-note">
+                            Replay highlights recorded operations in order.
+                            Model geometry and camera remain fixed.
+                        </p>
+                        <div id="step-list" class="step-list">
+                            <p class="empty-small">
+                                Run a prompt to inspect prefill and decode
+                                steps.
+                            </p>
+                        </div>
+                        <p class="accuracy-note">
+                            The full graph is preserved for each step. Dense
+                            layers usually all execute; prompt-specific values
+                            and expert selections can differ.
+                        </p>
+                    </div>
+                    <div id="panel-compare" class="execution-panel" hidden>
+                        <p class="compare-intro">
+                            Compare two saved prompts and their actual expert
+                            selections.
+                        </p>
+                        <div class="compare-controls">
+                            <select
+                                id="compare-left"
+                                aria-label="First run"
+                            ></select
+                            ><span>→</span
+                            ><select
+                                id="compare-right"
+                                aria-label="Second run"
+                            ></select
+                            ><button id="compare" class="secondary">
+                                Compare
+                            </button>
+                        </div>
+                        <pre id="comparison" class="comparison">
+Choose two executions from the archive.</pre
+                        >
+                    </div>
+                    <p id="notice" role="status" class="notice">
+                        Loading the local workspace…
+                    </p>
+                </section>
+            </main>
+            <aside class="inspector">
+                <div class="inspector-header">
+                    <span class="section-label">OBSERVATION DESK</span
+                    ><span class="crosshair">⊹</span>
+                </div>
+                <div class="inspector-tabs">
+                    <button data-inspect="node" class="active">Inspect</button
+                    ><button data-inspect="experts">Experts</button
+                    ><button data-inspect="model">Model</button
+                    ><button data-inspect="log">Log</button>
+                </div>
+                <div id="inspect-node" class="inspect-panel">
+                    <div class="inspector-empty">
+                        <span>⊙</span>
+                        <h3>Follow the computation.</h3>
+                        <p>
+                            Select any node to inspect its operation,
+                            dependencies, tensor shape and measured values.
+                        </p>
+                    </div>
+                </div>
+                <div id="inspect-experts" class="inspect-panel" hidden>
+                    <div class="eyebrow">LIVE ROUTER DECISIONS</div>
+                    <h3>Expert activity</h3>
+                    <p class="inspector-copy">
+                        Actual integer IDs read from expert dispatch tensors.
+                        Repeated gate / up / down observations are deduplicated.
+                    </p>
+                    <div id="experts">
+                        <p class="empty-small">
+                            No expert selections in this graph yet.
+                        </p>
+                    </div>
+                </div>
+                <div id="inspect-model" class="inspect-panel" hidden>
+                    <h3>Model anatomy</h3>
+                    <div id="model-details">
+                        <p class="empty-small">
+                            Load a model to read its GGUF metadata.
+                        </p>
+                    </div>
+                </div>
+                <div id="inspect-log" class="inspect-panel" hidden>
+                    <div class="log-heading">
+                        <h3>Observation log</h3>
+                        <span id="event-count">0 events</span>
+                    </div>
+                    <p class="inspector-copy">
+                        A recent window. Full prompt traces are preserved in
+                        SQLite and downloadable as JSONL.
+                    </p>
+                    <input
+                        id="log-filter"
+                        class="log-filter"
+                        placeholder="Filter events…"
+                        aria-label="Filter event log"
+                    />
+                    <pre id="raw-log" class="raw-log"></pre>
+                </div>
+                <div class="capture-footnote">
+                    <span class="mini-dot"></span>
+                    <p>
+                        Model capacity. Measured activity.<br /><small
+                            >Detailed capture adds synchronization overhead.
+                            Wall intervals include observer cost.</small
+                        >
+                    </p>
+                </div>
+            </aside>
+        </div>
+        <dialog id="help-dialog">
+            <button
+                id="close-help"
+                class="icon-button close-dialog"
+                aria-label="Close help"
+            >
+                ×
+            </button>
+            <div class="eyebrow">HOW TO READ THE OBSERVATORY</div>
+            <h2>A window into execution.</h2>
+            <p>
+                The model catalog preloads GGUF weights, structural modules,
+                every expert and named operations from a one-token runtime
+                inspection. Prompts and replay change highlights in place.
+                Original per-step runtime graphs remain preserved in SQLite.
+            </p>
+            <p>
+                <strong>Layers</strong> groups the catalog by component and
+                layer. <strong>Operations</strong> expands its entries. Runtime
+                variants map onto existing modules, keeping camera and model
+                geometry fixed. Hover or click for weight pages and hidden
+                channels.
+            </p>
+            <p>
+                <strong>Full capture</strong> observes every scheduled operation
+                and samples up to 256 output values. It also records FFN hidden
+                channels for the first token of each step, up to 262144 values
+                per tensor, and layer output channels. Layer mode observes layer
+                boundaries and routing. Routing mode preserves the graph and
+                actual expert IDs. Slow replay advances recorded operations at
+                the selected rate.
+            </p>
+            <p>
+                Callback wall intervals include synchronization and observation
+                overhead. They are not exclusive GPU kernel timings. Fused
+                backend kernels may be represented by fewer scheduled graph
+                operations. Arbitrary uninstrumented processes cannot be
+                attached after context creation.
+            </p>
+            <p>
+                Prompt data and traces stay on your machine. Use the JSON /
+                JSONL actions to export a selected prompt. Restarting the
+                application keeps its saved history.
+            </p>
+        </dialog>
+        <script type="module" src="/src/main.js"></script>
+    </body>
+</html>
